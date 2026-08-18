@@ -436,11 +436,6 @@ main,
   color: var(--muted);
 }
 
-.placeholder-row {
-  color: var(--muted);
-}
-
-
 /* ---------- Footer ---------- */
 
 .site-footer {
@@ -485,6 +480,10 @@ main,
   .misc-grid {
     grid-template-columns: 1fr;
     gap: 3rem;
+  }
+
+  .misc-page .misc-grid {
+    gap: 1.5rem;
   }
 
   .work-group {
