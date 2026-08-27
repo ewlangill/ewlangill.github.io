@@ -107,8 +107,13 @@ main,
 
 .section-heading {
   display: grid;
-  grid-template-columns: 80px 1fr;
-  margin-bottom: 4rem;
+  grid-template-columns: 1fr;
+  gap: 0.45rem;
+  margin-bottom: 3rem;
+}
+
+#work .section-heading {
+  margin-bottom: 1rem;
 }
 
 .section-number {
@@ -476,12 +481,16 @@ main,
   }
 
   .section {
-    padding-bottom: 5rem;
+    padding-bottom: 3.5rem;
   }
 
   .section-heading {
-    grid-template-columns: 45px 1fr;
-    margin-bottom: 3rem;
+    grid-template-columns: 1fr;
+    margin-bottom: 2rem;
+  }
+
+  #work .section-heading {
+    margin-bottom: 1rem;
   }
 
   .about-grid,
@@ -505,11 +514,26 @@ main,
   }
 
   .work-group-label {
-    margin-bottom: 1rem;
+    padding-top: 0;
+    margin-bottom: 0.25rem;
+  }
+
+  .current-work > .featured-role {
+    padding-top: 0.5rem;
+  }
+
+  .work-group + .work-group {
+    margin-top: 3rem;
+  }
+
+  .current-work > .role:last-child,
+  .past-work > .role:last-child {
+    padding-bottom: 0;
   }
 
   .video-grid {
     grid-template-columns: 1fr;
+    gap: 2rem;
   }
 
   .role-heading,
@@ -532,6 +556,14 @@ main,
 
   .post-row {
     grid-template-columns: 78px 1fr auto;
+  }
+
+  .contact-grid {
+    gap: 2rem;
+  }
+
+  .social-links {
+    margin-top: 1.5rem;
   }
 }
 
