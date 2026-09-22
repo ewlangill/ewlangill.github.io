@@ -1,12 +1,16 @@
 /* ---------- Base ---------- */
 
 :root {
-  --bg: #111111;
-  --text: #f2f0ea;
-  --muted: #aaa79f;
-  --line: #45443f;
-  --panel: #1d1d1b;
-  --accent: #90a1cf;
+  --ink: #111111;
+  --paper: #f2f0ea;
+  --quiet: #aaa79f;
+  --signal: #90a1cf;
+  --bg: var(--ink);
+  --text: var(--paper);
+  --muted: var(--quiet);
+  --accent: var(--signal);
+  --line: rgba(242, 240, 234, 0.24);
+  --panel: rgba(242, 240, 234, 0.045);
   --max-width: 1500px;
 }
 
@@ -37,6 +41,11 @@ a:hover {
   text-underline-offset: 0.18em;
 }
 
+a:focus-visible {
+  outline: 2px solid var(--signal);
+  outline-offset: 4px;
+}
+
 p,
 h1,
 h2,
@@ -51,8 +60,8 @@ code {
 }
 
 ::selection {
-  background: var(--text);
-  color: var(--bg);
+  background: var(--signal);
+  color: var(--ink);
 }
 
 
@@ -88,6 +97,16 @@ code {
 .site-nav span {
   color: var(--muted);
   margin-right: 0.3rem;
+}
+
+.site-nav a[aria-current="page"] {
+  text-decoration: underline;
+  text-decoration-color: var(--signal);
+  text-underline-offset: 0.3em;
+}
+
+.site-nav a[aria-current="page"] span {
+  color: var(--signal);
 }
 
 
