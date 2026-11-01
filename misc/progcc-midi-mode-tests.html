@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#111111">
+  <meta name="description" content="Development notes on an experimental native USB-MIDI mode for ProGCC: mapping, pitch bend, editor and save tests, with hardware validation still ahead.">
+  <title>ProGCC Midi Mode tests — Wes Langill</title>
+  <link rel="icon" href="../favicon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="../style.css">
+  <style>
+    .midi-post { max-width: 1040px; }
+    .midi-post .section-heading { margin-bottom: 3rem; }
+    .midi-post h1 { max-width: 14ch; }
+    .midi-copy { max-width: 68ch; }
+    .midi-copy > * + * { margin-top: 1.5rem; }
+    .midi-copy h2 { margin-top: 3rem; font-size: 1.5rem; line-height: 1.1; letter-spacing: -0.04em; font-weight: 500; }
+    .midi-copy p { line-height: 1.5; }
+    .midi-copy a { color: var(--signal); text-decoration: underline; text-underline-offset: .18em; }
+    .midi-status { padding: 1.5rem; border: 1px solid var(--line); background: var(--panel); }
+    .midi-status strong { display: block; margin-bottom: .5rem; }
+    .midi-copy li + li { margin-top: .75rem; }
+    .midi-copy ul, .midi-copy ol { padding-left: 1.5rem; }
+    .midi-meta { font-family: "Courier New", monospace; font-size: .75rem; color: var(--quiet); }
+    .midi-sources { border-top: 1px solid var(--line); padding-top: 1.5rem; font-size: .875rem; overflow-wrap: anywhere; }
+    @media (max-width: 600px) { .midi-status { padding: 1rem; } }
+  </style>
+</head>
+<body>
+  <header class="site-header">
+    <a class="site-name" href="../index.html#top">Wes Langill</a>
+    <nav class="site-nav" aria-label="Primary navigation">
+      <a href="../index.html#about"><span>01</span> About</a>
+      <a href="../index.html#work"><span>02</span> Work</a>
+      <a href="../index.html#contact"><span>03</span> Contact</a>
+      <a href="../misc.html" aria-current="page"><span>04</span> Misc</a>
+    </nav>
+  </header>
+  <main id="top">
+    <article class="section midi-post">
+      <div class="section-heading">
+        <p class="section-number">04 / MISC · <time datetime="2026-11-01">2026.11.01</time></p>
+        <h1>ProGCC Midi Mode tests</h1>
+      </div>
+      <div class="midi-copy">
+        <p class="lede">Turning controller input into musical control.</p>
+        <p>I’m developing an experimental native USB-MIDI mode for ProGCC 3.2. The aim is to use the controller’s buttons, sticks and gyro to play and shape sound over its USB cable, with editable mappings and profiles. Runtime MIDI is handled by the firmware; the design does not need a computer-side translator.</p>
+        <div class="midi-status">
+          <strong>Built and tested in software. Hardware validation is still ahead.</strong>
+          <p>The candidate firmware has not been installed on my controller. The results below come from source inspection, firmware builds and host tests using simulated hardware boundaries. They do not establish native MIDI enumeration, audible performance, latency, compatibility or saved settings surviving a real power cycle.</p>
+        </div>
+
+        <h2>What’s implemented</h2>
+        <p>The candidate adds a separate power-on-selectable MIDI mode, four mapping profiles, button note/CC actions, four stick axes and three gyro axes, with channel, CC and pitch assignments. It includes recenter/clutch handling, bounded output rates and note-release cleanup. Existing controller modes, settings and recovery paths are being preserved; their behavior with the new firmware still needs physical verification.</p>
+        <p>A local browser editor can read the current bank, edit mappings, apply changes temporarily and export a bank file. The firmware handles performance after the editor closes. Temporary Apply and permanent Save are separate operations.</p>
+
+        <h2>A pitch-bend starting point</h2>
+        <p>Profile 2 maps left-stick X to pitch bend on MIDI channel 1, with A sending note 60 at velocity 100 on the same channel. The intended receiver setting is ±12 semitones: two octaves from one end of the stick to the other. The receiver must be set deliberately; the controller does not automatically send an RPN pitch-range change.</p>
+        <p>Software checks cover sending a due bend before a same-channel Note On and keeping note releases independent of bend rate limits. This is an editable preset, with musical feel and physical stick response still to be tested.</p>
+
+        <h2>Save and readback tests</h2>
+        <p>The firmware’s explicit Save operation snapshots the bank already applied to the controller. It first releases musical output and waits for cleanup and USB transmission to drain. It then makes one guarded storage attempt and verifies the full written sector. Retrying the retained transaction returns the cached result instead of writing again.</p>
+        <p>The browser Save client is implemented and host-tested. It compares the expected bank with the applied bank before sending Save, waits for a final result and compares readback afterward. It never applies an editor draft as part of saving. The visible Save button and its complete editor workflow are still next.</p>
+        <ul>
+          <li>A mismatched draft sends no Save request.</li>
+          <li>A dropped final acknowledgment retries the same transaction with one writer attempt.</li>
+          <li>A modeled restart restores the saved Profile 2 after a different temporary bank was applied.</li>
+          <li>A storage failure is cached, and the earlier saved bank remains available in the RAM model.</li>
+          <li>Busy, Unsupported, Canceled and disconnect responses are handled. A missing reply leaves the outcome unknown; reading RAM alone cannot confirm storage.</li>
+        </ul>
+        <p>The C/JavaScript checks pass with address and undefined-behavior sanitizers. Separate backend tests cover 4,097 interrupted-write prefixes in simulated flash. Tests around the pinned TinyUSB MIDI class cover queued data, transfers in flight, the terminating zero-length packet and transfer failures. These are useful software checks, not evidence of real flash behavior or USB performance.<sup><a href="#source-1" aria-label="Source 1">[1]</a></sup></p>
+
+        <h2>Build checkpoint</h2>
+        <p>The save-enabled Release candidate uses 426,984 bytes of flash and 125,852 bytes of main RAM. The disabled comparison build uses 402,080 and 118,796 bytes respectively. Static checks retain the 3,880-byte settings structure and all 23 existing descriptor arrays. This does not prove runtime memory headroom or gameplay behavior.</p>
+        <p class="midi-meta">Firmware checkpoint: ad72f19 · Save client checkpoint: db9b6b2<br>Project test log as of November 1, 2026.</p>
+
+        <h2>Next tests</h2>
+        <p>Next are the deliberate Save interface, physical stick and gyro calibration, mode indication and recovery preparation. Before an installation trial, I still need to establish the exact installed firmware and layout, make private backups and verify a bounded update and restoration procedure. Native MIDI enumeration, actual saved power cycles and physical musical performance remain unverified.</p>
+        <p>This post shares the development results. There is no firmware download or installer here.</p>
+
+        <div class="midi-sources">
+          <h2>Sources &amp; test provenance</h2>
+          <ol>
+            <li id="source-1">Primary upstream reference: the pinned <a href="https://github.com/hathach/tinyusb/blob/86ad6e56c1700e85f1c5678607a762cfe3aa2f47/src/class/midi/midi_device.c">TinyUSB MIDI class</a> and <a href="https://github.com/hathach/tinyusb/blob/86ad6e56c1700e85f1c5678607a762cfe3aa2f47/src/class/midi/midi_device.h">public API</a>. The class notes “skip if previous transfer not complete.” The additional drain observer and test results described above belong to this experimental project.</li>
+            <li>Primary storage reference: pinned HOJA <a href="https://github.com/HandHeldLegend/HOJA-LIB-RP2040/blob/f92a0e32995b8ae7ceb780376adf2a11c5ceabc5/src/hal/rp2040/record_hal.c">record allocation</a> and <a href="https://github.com/HandHeldLegend/HOJA-LIB-RP2040/blob/f92a0e32995b8ae7ceb780376adf2a11c5ceabc5/src/hal/rp2040/flash_hal.c">flash operations</a>. MIDI persistence is a separate project implementation; these upstream files do not provide it.</li>
+            <li>Build sizes and test outcomes are first-party project records from the checkpoints listed above, not independent hardware validation. No community report is used as authority for these results.</li>
+          </ol>
+        </div>
+      </div>
+      <a class="resume-back" href="../misc.html">← Misc</a>
+    </article>
+  </main>
+  <footer class="site-footer">
+    <p>© 2026 Wes Langill</p>
+    <a href="../index.html#top">Back to home ↑</a>
+  </footer>
+</body>
+</html>
