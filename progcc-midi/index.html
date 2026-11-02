@@ -19,7 +19,8 @@
         <div class="validation" id="validation" role="status">Mappings are ready.</div>
       </section>
     </div>
-    <section class="controller"><div><p class="eyebrow">CONTROLLER</p><h2>Controller connection</h2><p>Connection requires the experimental MIDI firmware. Apply is temporary. A restart restores the saved bank or defaults.</p></div><div class="device-actions"><button id="connect">Connect controller</button><button id="disconnect" hidden>Disconnect</button><button id="read" disabled>Read controller</button><button class="primary" id="apply" disabled>Apply temporarily <span aria-hidden="true">→</span></button></div></section>
+    <section class="controller"><div><p class="eyebrow">CONTROLLER</p><h2>Controller connection</h2><p>Connection requires the experimental MIDI firmware. Apply is temporary. A restart restores the saved bank or defaults.</p></div><div class="device-actions"><button id="connect">Connect controller</button><button id="disconnect" hidden>Disconnect</button><button id="read" disabled>Read controller</button><button class="primary" id="apply" disabled>Apply temporarily <span aria-hidden="true">→</span></button><button id="save" disabled aria-describedby="bank-state">Save current bank</button></div></section>
+    <p id="bank-state" class="status" role="status" aria-live="polite">Read or apply this bank before saving. Storage has not been confirmed.</p>
     <p id="status" class="status" role="status" aria-live="polite">Edit offline, or open a bank you downloaded earlier. Download a bank to keep your work.</p>
     <footer><span>USB-MIDI candidate · assignment editor</span><span>Runtime MIDI travels directly over the USB cable.</span></footer>
   </main>
